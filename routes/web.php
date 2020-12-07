@@ -11,6 +11,15 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
+$router->group(['prefix' => 'Aoc'], function() use ($router) {
+    $router->get('/', function () use ($router) {
+        return $router->app->version();
+    });
+
+    $router->group(['prefix' => '2020'], function() use ($router) {
+        $router->get('day/1[/part/{part}]', Day1Controller::class);
+        $router->get('day/2[/part/{part}]', Day2Controller::class);
+        $router->get('day/3[/part/{part}]', Day3Controller::class);
+        $router->get('day/4[/part/{part}]', Day4Controller::class);
+    });
 });
