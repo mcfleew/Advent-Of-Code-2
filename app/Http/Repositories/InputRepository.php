@@ -15,15 +15,13 @@ class InputRepository
     }
 
     public function getExpenseReport() {
-        $expenses = $this->getInputAsArray('day1.txt');
-        return collect($expenses);
+        return $this->getInputCollection('day1.txt');
     }
 
     public function getPasswordsList() {
-        $policiesAndPasswords = $this->getInputAsArray('day2.txt');
-        $policiesAndPasswordsCollection = collect($policiesAndPasswords);
+        $policiesAndPasswords = $this->getInputCollection('day2.txt');
 
-        $policiesAndPasswordsCollection->transform(function ($passwordAndPoicy, $key) {
+        return $policiesAndPasswords->map(function ($passwordAndPoicy) {
             list($policy, $password) = explode(': ', $passwordAndPoicy);
             list($minValue, $maxValue, $letter) = sscanf($policy, '%d-%d %s');
 
@@ -34,19 +32,17 @@ class InputRepository
                 'password' => $password
             ];
         });
-        return $policiesAndPasswordsCollection;
     }
 
     public function getOpenSquaresAndTrees() {
-        $openSquaresAndTrees = $this->getInputAsArray('day3.txt');
-        return collect($openSquaresAndTrees);
+        return $this->getInputCollection('day3.txt');
     }
 
     public function getPassportsData() {
         $passportsData = $this->getInputContents('day4.txt');
         $passportsDataCollection = Str::of($passportsData)->explode("\n\n");
 
-        $passportsDataCollection->transform(function ($passportDataRaw, $key) {
+        return $passportsDataCollection->map(function ($passportDataRaw, $key) {
             $passportData = Str::of($passportDataRaw)->split('/\s|\n/');
 
             return $passportData->map(function ($data, $key) {
@@ -56,11 +52,25 @@ class InputRepository
                 }
             });
         });
-        return collect($passportsDataCollection);
     }
 
-    public function getInputAsArray($file) {
-        return file($this->getInputFile($file), FILE_IGNORE_NEW_LINES);
+    public function getBoardingPasses() {
+        return $this->getInputCollection('day5.txt');
+    }
+
+    public function getDeclarationForms() {
+        $declarationForms = $this->getInputContents('day6.txt');
+        $declarationFormsCollection = Str::of($declarationForms)->explode("\n\n");
+
+        return $declarationFormsCollection->map(function ($forms) {
+            return Str::of($forms)->explode("\n")->map(function ($answers) {
+                return collect(str_split($answers));
+            });
+        });
+    }
+
+    public function getInputCollection($file) {
+        return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }
 
     public function getInputContents($file) {

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Repositories\InputRepository;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class Day4Controller extends Controller
