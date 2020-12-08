@@ -2,11 +2,15 @@
 
 namespace App\Http\Repositories;
 
+use App\Http\Traits\DebugTrait;
+
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class InputRepository
 {
+    use DebugTrait;
+
     protected $inputPath;
 
     public function __construct()
@@ -39,17 +43,14 @@ class InputRepository
     }
 
     public function getPassportsData() {
-        $passportsData = $this->getInputContents('day4.txt');
-        $passportsDataCollection = Str::of($passportsData)->explode("\n\n");
+        $passportsData = $this->getInputCollectionSplitBy('day4.txt');
 
-        return $passportsDataCollection->map(function ($passportDataRaw, $key) {
-            $passportData = Str::of($passportDataRaw)->split('/\s|\n/');
+        return $passportsData->map(function ($passportDataRaw) {
+            $passportData = Str::of($passportDataRaw)->split('/[\s\n]')->filter();
 
-            return $passportData->map(function ($data, $key) {
-                if ($data) {
-                    list($field, $value) = Str::of($data)->explode(':');
-                    return [$field => $value];
-                }
+            return $passportData->map(function ($data) {
+                list($field, $value) = Str::of($data)->explode(':');
+                return [$field => $value];
             });
         });
     }
@@ -59,18 +60,43 @@ class InputRepository
     }
 
     public function getDeclarationForms() {
-        $declarationForms = $this->getInputContents('day6.txt');
-        $declarationFormsCollection = Str::of($declarationForms)->explode("\n\n");
+        $declarationForms = $this->getInputCollectionSplitBy('day6.txt');
 
-        return $declarationFormsCollection->map(function ($forms) {
+        return $declarationForms->map(function ($forms) {
             return Str::of($forms)->explode("\n")->map(function ($answers) {
                 return collect(str_split($answers));
             });
         });
     }
 
+    public function getLuggagesRules() {
+        $luggagesRules = $this->getInputCollection('day7.txt');
+
+        return $luggagesRules->map(function ($luggageRule) {
+            $bagContainer = Str::before($luggageRule, ' contain ');
+            $bagContent = Str::after($luggageRule, ' contain ');
+            $bagsContainedRaw = Str::of($bagContent)->matchAll('/([0-9]+ [a-z-A-Z ]+)[\.,]/')->filter();
+
+            $bagsContained = $bagsContainedRaw->mapWithKeys(function ($bagContained) {
+                return collect([
+                    Str::finish(Str::substr($bagContained, 2), 's') => 
+                    Str::substr($bagContained, 0, 1)
+                ]);
+            });
+
+            return (object) [
+                'bagContainer' => $bagContainer,
+                'bagsContained' => $bagsContained
+            ];
+        });
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
+    }
+
+    public function getInputCollectionSplitBy($file, $delimeter = '\n\n') {
+        return Str::of($this->getInputContents($file))->explode($delimeter);
     }
 
     public function getInputContents($file) {

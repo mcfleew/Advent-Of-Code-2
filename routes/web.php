@@ -23,5 +23,6 @@ $router->group(['prefix' => 'Aoc'], function() use ($router) {
         $router->get('day/4[/part/{part}]', Day4Controller::class);
         $router->get('day/5[/part/{part}]', Day5Controller::class);
         $router->get('day/6[/part/{part}]', Day6Controller::class);
+        $router->get('day/7[/part/{part}]', Day7Controller::class);
     });
 });
