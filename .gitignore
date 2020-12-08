@@ -3,13 +3,13 @@
 /app/Exceptions
 /app/Jobs
 /app/Listeners
+/app/Middleware
 /app/Providers
 
 /bootstrap
 /database
 /nbproject
-/storage/framework
-/storage/logs
+/storage
 /tests
 /vendor
 
