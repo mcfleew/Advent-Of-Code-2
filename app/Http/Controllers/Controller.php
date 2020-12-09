@@ -14,6 +14,16 @@ class Controller extends BaseController
 
     public function __construct()
     {
+        //
+    }
 
+    public function part1()
+    {
+        //
+    }
+
+    public function part2()
+    {
+        //
     }
 }

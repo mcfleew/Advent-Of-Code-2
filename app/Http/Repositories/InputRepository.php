@@ -104,6 +104,12 @@ class InputRepository
         });
     }
 
+    public function getNumbersList() {
+        return $this->getInputCollection('day9.txt')->map(function ($number) {
+            return intval($number);
+        });
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }
