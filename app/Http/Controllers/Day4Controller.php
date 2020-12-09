@@ -26,9 +26,7 @@ class Day4Controller extends Controller
         $passports = $this->inputRepository->getPassportsData();
         
         $validPassports = $passports->filter(function ($passportData) {
-            $data = $passportData->mapWithKeys(function($fieldData) {
-                return collect($fieldData)->except('cid');
-            });
+            $data = $this->getPassportDataExceptCid($passportData);
             return $data->has($this->requiredFields);
         });
 
@@ -39,17 +37,25 @@ class Day4Controller extends Controller
         $passports = $this->inputRepository->getPassportsData();
         
         $validPassports = $passports->filter(function ($passportData) {
-            $data = $passportData->mapWithKeys(function($fieldData) {
-                return collect($fieldData)->except('cid');
-            });
+            $data = $this->getPassportDataExceptCid($passportData);
             if ($data->has($this->requiredFields)) {
-                return $data->every(function ($fieldValue, $fieldKey) {
-                    return $this->isThisFieldValid($fieldKey, $fieldValue);
-                });
+                return $this->isAllFiledsValid($data); 
             }
         });
 
         return $validPassports->count();
+    }
+
+    public function getPassportDataExceptCid($passportData) {
+        return $passportData->mapWithKeys(function($fieldData) {
+            return collect($fieldData)->except('cid');
+        });
+    }
+
+    public function isAllFiledsValid($data) {
+        return $data->every(function ($fieldValue, $fieldKey) {
+            return $this->isThisFieldValid($fieldKey, $fieldValue);
+        });
     }
 
     public function isThisFieldValid($fieldKey, $fieldValue) {

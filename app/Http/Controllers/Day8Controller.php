@@ -26,7 +26,7 @@ class Day8Controller extends Controller
             $this->initGlobal();
             $this->underTest = null;
             $this->runCode(true);
-        } while ($this->accumulator < 0 || $this->codeBreak);
+        } while ($this->codeFails());
 
         return $this->accumulator;
     }
@@ -50,21 +50,18 @@ class Day8Controller extends Controller
                 if ($repareCode) {
                     $operation = $this->changeOperation($operation, $argument);
                 }
-                
-                if ($operation === 'jmp') {
-                    $this->counter += $argument;
-                } else {
-                    if ($operation === 'acc') {
-                        $this->accumulator += $argument;
-                    }
-                    $this->counter++;
-                }
+                $this->executeInstruction($operation, $argument);
             } else {
                 $this->codeBreak = true;
                 break;
             }
         }
         return $this->accumulator;
+    }
+
+    public function executeInstruction($operation, $argument) {
+        $this->counter += ($operation === 'jmp') ? $argument : 1;
+        $this->counter += ($operation === 'acc') ? $argument : 0;
     }
 
     public function changeOperation($operation, $argument) {
@@ -78,5 +75,9 @@ class Day8Controller extends Controller
             }
         }
         return $operation;
+    }
+
+    public function codeFails() {
+        return $this->accumulator < 0 || $this->codeBreak;
     }
 }
