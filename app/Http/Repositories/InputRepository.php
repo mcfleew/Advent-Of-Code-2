@@ -91,6 +91,19 @@ class InputRepository
         });
     }
 
+    public function getBootCode() {
+        $bootCode = $this->getInputCollection('day8.txt');
+
+        return $bootCode->map(function ($instruction) {
+            list($operation, $argument) = explode(' ', $instruction);
+
+            return (object) [
+                'operation' => $operation,
+                'argument' => intval($argument)
+            ];
+        });
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }
