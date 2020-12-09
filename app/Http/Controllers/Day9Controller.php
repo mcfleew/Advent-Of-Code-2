@@ -10,23 +10,30 @@ class Day9Controller extends Controller
         $this->inputRepository = $inputRepository;
         $this->lengthPreamble = 25;
         $this->preamble = collect();
+        $this->range = collect();
     }
 
     public function part1() {
         $this->numbers = $this->inputRepository->getNumbersList();
+        return $this->findAnomalyNumber();
+    }
+
+    public function part2() {
+        $this->numbers = $this->inputRepository->getNumbersList();
+        
+        $anomaly = $this->findAnomalyNumber();
+        return $this->findContiguousAnomalyRange($anomaly);
+    }
+
+    public function findAnomalyNumber() {
         for ($counter = 0; $counter < $this->numbers->count(); $counter++) {
             $number = $this->numbers->get($counter);
 
             if ($counter >= $this->lengthPreamble) {
-                $sumMatrixRaw = $this->preamble->crossJoin($this->preamble);
-                $sumMatrix = $sumMatrixRaw->reject(function ($m) {
-                    return $m[0] === $m[1];
-                });
-                $sum = $sumMatrix->first(function ($m) use ($number) {
-                    return $m[0] + $m[1] === $number;
-                });
-                
-                if (!$sum) {
+                $sumMatrix = $this->getAllSumPossibilities();
+                $sumMatch = $this->findSumThatMatchNumber($sumMatrix, $number);
+
+                if (!$sumMatch) {
                     return $number;
                 }
                 $this->preamble->shift();
@@ -36,27 +43,40 @@ class Day9Controller extends Controller
         return 0;
     }
 
-    public function part2() {
-        $this->numbers = $this->inputRepository->getNumbersList();
+    public function findContiguousAnomalyRange($anomaly) {
         for ($counter = 0; $counter < $this->numbers->count(); $counter++) {
             $number = $this->numbers->get($counter);
 
-            if ($counter >= $this->lengthPreamble) {
-                $sumMatrixRaw = $this->preamble->crossJoin($this->preamble);
-                $sumMatrix = $sumMatrixRaw->reject(function ($m) {
-                    return $m[0] === $m[1];
-                });
-                $sum = $sumMatrix->first(function ($m) use ($number) {
-                    return $m[0] + $m[1] === $number;
-                });
-                
-                if (!$sum) {
-                    return $number;
-                }
-                $this->preamble->shift();
+            $this->sumEveryNumber($number);
+            $this->shiftNumbersIfExceedAnomaly($anomaly);
+
+            if ($this->range->sum() === $anomaly) {
+                return $this->range->min() + $this->range->max();
             }
-            $this->preamble->push($number);
         }
         return 0;
+    }
+
+    public function getAllSumPossibilities() {
+        $sumMatrix = $this->preamble->crossJoin($this->preamble);
+        return $sumMatrix->reject(function ($m) {
+            return $m[0] === $m[1];
+        });
+    }
+
+    public function findSumThatMatchNumber($sumMatrix, $number) {
+        return $sumMatrix->first(function ($m) use ($number) {
+            return $m[0] + $m[1] === $number;
+        });
+    }
+
+    public function sumEveryNumber($number) {
+        $this->range->push($number);
+    }
+
+    public function shiftNumbersIfExceedAnomaly($anomaly) {
+        while ($this->range->sum() > $anomaly) {
+            $this->range->shift();
+        }
     }
 }
