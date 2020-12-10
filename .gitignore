@@ -6,11 +6,8 @@
 /app/Middleware
 /app/Providers
 
-/bootstrap
-/database
 /nbproject
 /storage
-/tests
 /vendor
 
 Homestead.json
@@ -23,6 +20,5 @@ Homestead.yaml
 .styleci.yml
 
 artisan
-composer.json
 composer.lock
 phpunit.xml

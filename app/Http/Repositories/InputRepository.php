@@ -110,6 +110,13 @@ class InputRepository
         });
     }
 
+    public function getJoltageAdapters() {
+        $adapters = $this->getInputCollection('day10.txt')->mapWithKeys(function ($number, $key) {
+            return collect([$key => ['joltage' => intval($number)]]);
+        });
+        return $adapters->sortBy('joltage')->values();
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }
