@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Repositories\InputRepository;
 
+use App\Jobs\AlternativesCounterJob;
+
+use Log;
+
 use Illuminate\Support\Str;
 
 class Day10Controller extends Controller
@@ -32,8 +36,9 @@ class Day10Controller extends Controller
     public function part2() {
         $this->adapters = $this->inputRepository->getJoltageAdapters();
         $answerPart1 = $this->part1();
-        $alternativeWays = $this->countAlternatives();
-        return $alternativeWays->count();
+        // $alternativeWays = $this->countAlternatives();
+        dispatch(new AlternativesCounterJob($this->alternatives)); 
+        return 'Processing...';
     }
 
     public function getBuiltInAdapter() {
@@ -63,35 +68,5 @@ class Day10Controller extends Controller
             $diffKey = $adapterConcerned['joltage'] - $builtInAdapter['joltage'];
             $this->diffCounter[$diffKey]++;
         }
-    }
-
-    public function countAlternatives() {
-        $alternativesWays = collect([':0']);
-
-        foreach($this->alternatives as $alternativesAdapters) {
-            $waysToAdd = collect();
-            $waysToRem = collect();
-
-            foreach($alternativesAdapters as $alternativeAdapter) {
-                $waysConcerned = $alternativesWays->filter(function ($alternativeWay) use ($alternativeAdapter) {
-                    return Str::afterLast($alternativeWay,':') < $alternativeAdapter['joltage'];
-                });
-                
-                if ($waysConcerned->isNotEmpty()) {
-                    $wayToAdd = $waysConcerned->crossJoin([':'.$alternativeAdapter['joltage']]);
-                    $wayToAdd->transform(function($splittedWay) {
-                        return implode($splittedWay);
-                    });
-                    $waysToAdd = $waysToAdd->merge($wayToAdd);
-                    $waysToRem = $waysToRem->merge($waysConcerned);
-                }
-            }
-
-            $alternativesWays = $alternativesWays->merge($waysToAdd);
-            $alternativesWays = $alternativesWays->reject(function ($way) use ($waysToRem) {
-                return $waysToRem->contains($way);
-            });
-        }
-        return $alternativesWays->sort()->values();
     }
 }
