@@ -19,4 +19,11 @@ trait DebugTrait
         self::debug($var);
         exit;
     }
+    
+    public static function debugMatrix($var) {
+        echo '<pre>';
+        $var->each(function ($row) {
+            echo $row->implode('').PHP_EOL;
+        });
+    }
 }

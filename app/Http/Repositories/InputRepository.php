@@ -117,6 +117,12 @@ class InputRepository
         return $adapters->sortBy('joltage')->values();
     }
 
+    public function getSeatsMap() {
+        return $this->getInputCollection('day11.txt')->map(function ($seats) {
+            return collect(str_split($seats));
+        });
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }
