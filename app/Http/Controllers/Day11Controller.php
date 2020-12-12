@@ -18,7 +18,7 @@ class Day11Controller extends Controller
             $this->atLeastOnePersonMoved = false;
             $this->applyOneRule();
             $this->applyOtherRule();
-            $this->flushSeatsMap();
+            $this->flushSeatsMapBuffer();
         } while ($this->atLeastOnePersonMoved);
 
         return $this->getAllOccupiedSeatsCount(); 
@@ -26,15 +26,28 @@ class Day11Controller extends Controller
 
     public function part2() {
         $this->seatsMap = $this->inputRepository->getSeatsMap();
-        return $this->seatsMap;
+        $this->seatsMapBuffer = $this->inputRepository->getSeatsMap();
+
+        do {
+            $this->atLeastOnePersonMoved = false;
+            $this->applyOneRule(false);
+            $this->applyOtherRule(false);
+            $this->flushSeatsMapBuffer();
+        } while ($this->atLeastOnePersonMoved);
+
+        return $this->getAllOccupiedSeatsCount(); 
     }
 
-    public function applyOneRule() {
+    public function applyOneRule($part1 = true) {
         foreach($this->seatsMap as $keyRow => $seats) {
             foreach($seats as $keyCol => $seat) {
                 if ($seat === 'L') {
-                    $adjacentSeats = $this->getAdjacentSeats($keyRow, $keyCol);
-                    $occupiedSeatsCounter = $this->countOccupiedSeats($adjacentSeats);
+                    if ($part1) {
+                        $adjacentSeatsCoordinates = $this->getAdjacentSeats($keyRow, $keyCol);
+                        $occupiedSeatsCounter = $this->countOccupiedSeats($adjacentSeatsCoordinates);
+                    } else {
+                        $occupiedSeatsCounter = $this->countFirstsVisibleSeats($keyRow, $keyCol);
+                    }
 
                     if ($occupiedSeatsCounter === 0) {
                         $this->setSeat($keyRow, $keyCol, '#');
@@ -44,14 +57,18 @@ class Day11Controller extends Controller
         }
     }
 
-    public function applyOtherRule() {
+    public function applyOtherRule($part1 = true) {
         foreach($this->seatsMap as $keyRow => $seats) {
             foreach($seats as $keyCol => $seat) {
                 if ($seat === '#') {
-                    $adjacentSeatsCoordinates = $this->getAdjacentSeats($keyRow, $keyCol);
-                    $occupiedSeatsCounter = $this->countOccupiedSeats($adjacentSeatsCoordinates);
+                    if ($part1) {
+                        $adjacentSeatsCoordinates = $this->getAdjacentSeats($keyRow, $keyCol);
+                        $occupiedSeatsCounter = $this->countOccupiedSeats($adjacentSeatsCoordinates);
+                    } else {
+                        $occupiedSeatsCounter = $this->countFirstsVisibleSeats($keyRow, $keyCol);
+                    }
 
-                    if ($occupiedSeatsCounter >= 4) {
+                    if (($part1 && $occupiedSeatsCounter >= 4) || (!$part1 && $occupiedSeatsCounter >= 5)) {
                         $this->setSeat($keyRow, $keyCol, 'L');
                     }
                 }
@@ -59,7 +76,7 @@ class Day11Controller extends Controller
         }
     }
 
-    public function flushSeatsMap() {
+    public function flushSeatsMapBuffer() {
         $this->seatsMap = $this->seatsMapBuffer->map(function ($seats) {
             return collect($seats);
         });
@@ -92,6 +109,34 @@ class Day11Controller extends Controller
 
     public function getSeatFromSeatsMap($coordinates) {
         return collect($this->seatsMap->get($coordinates[0]))->get($coordinates[1]);
+    }
+
+    public function countFirstsVisibleSeats($keyRow, $keyCol) {
+        $directions = collect([-1, 0, 1])->crossJoin([-1, 0, 1])->reject(function ($direction) {
+            return $direction[0] === 0 && $direction[1] === 0;
+        });
+        $occupiedSeatsCounter = 0;
+
+        foreach ($directions as $direction) {
+            $seat = $this->getFirstVisibleSeat($keyRow, $keyCol, $direction);
+            if ($seat && $seat === '#') $occupiedSeatsCounter++;
+        }
+        
+        return $occupiedSeatsCounter;
+    }
+
+    public function getFirstVisibleSeat($keyRow, $keyCol, $direction) {
+        $nextKeyRow = $keyRow;
+        $nextKeyCol = $keyCol;
+
+        do {
+            $nextKeyRow += $direction[0];
+            $nextKeyCol += $direction[1];
+            $nextCoordinates = collect([$nextKeyRow, $nextKeyCol]);
+            $seat = $this->getSeatFromSeatsMap($nextCoordinates);
+        } while (!is_null($seat) && $seat === '.');
+
+        return $seat;
     }
 
     public function setSeat($keyRow, $keyCol, $value) {
