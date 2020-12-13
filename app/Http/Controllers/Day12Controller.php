@@ -27,31 +27,35 @@ class Day12Controller extends Controller
 
     public function part1() {
         $this->instructions = $this->inputRepository->getNavigationInstructions();
+        $this->facingDirection = 'E';
         $this->navigate();
-        return abs($this->map['N'] - $this->map['S']) + abs($this->map['E'] - $this->map['W']);
+        return $this->getManhattanDistance();
     }
 
     public function part2() {
         $this->instructions = $this->inputRepository->getNavigationInstructions();
+        $this->waypoint = collect($this->map)->merge(['N' => 1, 'E' => 10]);
+        $this->navigate(false);
+        return $this->getManhattanDistance();
     }
 
-    public function navigate() {
-        $facingDirection = 'E';
-
+    public function navigate($part1 = true) {
         foreach ($this->instructions as $instruction) {
-            $direction = $instruction->action;
+            $action = $instruction->action;
             $units = $instruction->units;
 
-            if (in_array($direction, ['F'])) {
-                $this->moveToward($facingDirection, $units);
+            if (in_array($action, ['F'])) {
+                if ($part1) $this->moveToward($this->facingDirection, $units);
+                if (!$part1) $this->moveWaypointForward($units);
             }
-            if (in_array($direction, array_keys($this->map))) { // N, S, E, W;
-                $this->moveToward($direction, $units);
+            if (in_array($action, array_keys($this->map))) { // N, S, E, W;
+                if ($part1) $this->moveToward($action, $units);
+                if (!$part1) $this->moveWaypointToward($action, $units);
             }
-            if (in_array($direction, array_keys($this->rotation))) { // L, R;
-                $facingDirection = $this->changeFacingDirection($facingDirection, $direction, $units);
+            if (in_array($action, array_keys($this->rotation))) { // L, R;
+                if ($part1) $this->facingDirection = $this->getNewDirection($action, $this->facingDirection, $units);
+                if (!$part1) $this->changeWaypointDirection($action, $units);
             }
-            // $oppositeAction = current($rotation)[$direction][180];
         }
     }
 
@@ -59,7 +63,28 @@ class Day12Controller extends Controller
         $this->map[$direction] += $units;
     }
 
-    public function changeFacingDirection($facingDirection, $direction, $units) {
-        return $this->rotation[$direction][$facingDirection][$units];
+    public function getNewDirection($action, $direction, $degrees) {
+        return $this->rotation[$action][$direction][$degrees];
     }
+
+    public function moveWaypointForward($times) {
+        $this->waypoint->each(function ($units, $direction) use ($times) {
+            $this->map[$direction] += $units * $times;
+        });
+    }
+
+    public function moveWaypointToward($direction, $units) {
+        $this->waypoint[$direction] += $units;
+    }
+
+    public function changeWaypointDirection($action, $degrees) {
+        $this->waypoint = $this->waypoint->mapWithKeys(function ($units, $direction) use ($action, $degrees) {
+            $newDirection = $this->getNewDirection($action, $direction, $degrees);
+            return collect([$newDirection => $units]);
+        });
+    }
+
+    public function getManhattanDistance() {
+        return abs($this->map['N'] - $this->map['S']) + abs($this->map['E'] - $this->map['W']);
+    } 
 }
