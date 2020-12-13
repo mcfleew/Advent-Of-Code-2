@@ -123,6 +123,15 @@ class InputRepository
         });
     }
 
+    public function getNavigationInstructions() {
+        return $this->getInputCollection('day12.txt')->map(function ($instruction) {
+            return (object) [
+                'action' => substr($instruction, 0, 1), 
+                'units' => intval(substr($instruction, 1))
+            ];
+        });
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }
