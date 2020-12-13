@@ -136,9 +136,7 @@ class InputRepository
         $notes = $this->getInputCollection('day13.txt');
         return (object) [
             'timestamp' => $notes->get(0),
-            'buses' => collect(explode(',', $notes->get(1)))->reject(function ($bus) {
-                return $bus === 'x';
-            })
+            'buses' => collect(explode(',', $notes->get(1)))
         ];
     }
 
