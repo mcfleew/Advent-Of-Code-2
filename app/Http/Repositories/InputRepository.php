@@ -132,6 +132,16 @@ class InputRepository
         });
     }
 
+    public function getBusNotes() {
+        $notes = $this->getInputCollection('day13.txt');
+        return (object) [
+            'timestamp' => $notes->get(0),
+            'buses' => collect(explode(',', $notes->get(1)))->reject(function ($bus) {
+                return $bus === 'x';
+            })
+        ];
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }
