@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Repositories\InputRepository;
 
-use Illuminate\Support\Str;
-
 class Day7Controller extends Controller
 {
     public function __construct(InputRepository $inputRepository) {

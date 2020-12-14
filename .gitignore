@@ -1,7 +1,6 @@
 /app/Console
 /app/Events
 /app/Exceptions
-/app/Jobs
 /app/Listeners
 /app/Middleware
 /app/Providers

@@ -16,22 +16,31 @@ class Day14Controller extends Controller
     public function part1() {
         $this->program = $this->inputRepository->getInitializationProgram();
 
-        $this->program->each(function ($instruction) {
+        $this->runProgram();
+
+        return $this->memory->sum();
+    }
+
+    public function part2() {
+        $this->program = $this->inputRepository->getInitializationProgram();
+
+        $this->runProgram(false);
+        
+        return $this->memory->sum();
+    }
+
+    public function runProgram($part1 = true) {
+        $this->program->each(function ($instruction) use ($part1) {
             if (Str::of($instruction)->startsWith('mask')) {
                 list($mask) = sscanf($instruction, 'mask = %s');
                 $this->updateBitmask($mask);
             }
             if (Str::of($instruction)->startsWith('mem')) {
                 list($address, $value) = sscanf($instruction, 'mem[%d] = %d');
-                $this->overwriteMemory($address, $value);
+                if ($part1) $this->overwriteMemory($address, $value);
+                if (!$part1) $this->overwriteMemoryV2($address, $value);
             }
         });
-        
-        return $this->memory->sum();
-    }
-
-    public function part2() {
-        //
     }
 
     public function updateBitmask($mask) {
@@ -39,13 +48,14 @@ class Day14Controller extends Controller
     }
 
     public function overwriteMemory($address, $value) {
-        $zippedMaskAndValue = $this->getZippedMaskAndValue($value);
+        $zippedMaskAndValue = $this->getZippedMaskAndValueOrAddress($value);
 
         $binValueWithMaskApplied = $zippedMaskAndValue->mapSpread(function ($bitFromMask, $bitFromValue) {
-            if ($bitFromMask !== 'X') {
+            if ($bitFromMask === 'X') {
+                return $bitFromValue;
+            } else {
                 return $bitFromMask;
             }
-            return $bitFromValue;
         });
 
         $valueWithMaskApplied = bindec($binValueWithMaskApplied->implode(''));
@@ -53,18 +63,45 @@ class Day14Controller extends Controller
         $this->memory->put($address, $valueWithMaskApplied);
     }
 
-    public function getZippedMaskAndValue($value) {
+    public function overwriteMemoryV2($address, $value) {
+        $zippedMaskAndAddress = $this->getZippedMaskAndValueOrAddress($address);
+
+        $this->binAddressesWithMaskApplied = collect(['']);
+        
+        $zippedMaskAndAddress->eachSpread(function ($bitFromMask, $bitFromAddress) {
+            $buffer = $this->binAddressesWithMaskApplied;
+
+            if ($bitFromMask === 'X') {
+                $buffer = $buffer->crossJoin([':0', ':1']);
+            } else if ($bitFromMask === '1') {
+                $buffer = $buffer->crossJoin([':1']);
+            } else if ($bitFromMask === '0') {
+                $buffer = $buffer->crossJoin([':'.$bitFromAddress]);
+            }
+            
+            $this->binAddressesWithMaskApplied = $buffer->map(function ($bitsWithMaskApplied) {
+                return collect($bitsWithMaskApplied)->implode('');
+            });
+        });
+
+        $this->binAddressesWithMaskApplied->each(function ($addressBitsWithMaskApplied) use ($value) {
+            $addressWithMaskApplied = bindec(Str::of($addressBitsWithMaskApplied)->explode(':')->implode(''));
+            $this->memory->put($addressWithMaskApplied, $value);
+        });
+    }
+
+    public function getZippedMaskAndValueOrAddress($valueOrAddress) {
         $splittedMask = $this->getSplittedMask();
-        $splittedValue = $this->getSplittedValue($value);
-        return $splittedMask->zip($splittedValue);
+        $splittedValueOrAddress = $this->getSplittedValueOrAddress($valueOrAddress);
+        return $splittedMask->zip($splittedValueOrAddress);
     }
 
     public function getSplittedMask() {
         return collect(str_split($this->mask));
     }
 
-    public function getSplittedValue($value) {
-        $binValue = Str::of(decbin($value))->padLeft(36, '0');
-        return collect(str_split($binValue));
+    public function getSplittedValueOrAddress($valueOrAdress) {
+        $binValueOrAdress = Str::of(decbin($valueOrAdress))->padLeft(36, '0');
+        return collect(str_split($binValueOrAdress));
     }
 }

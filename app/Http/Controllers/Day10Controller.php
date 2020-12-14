@@ -8,8 +8,6 @@ use App\Jobs\AlternativesCounterJob;
 
 use Log;
 
-use Illuminate\Support\Str;
-
 class Day10Controller extends Controller
 {
     public function __construct(InputRepository $inputRepository) {
