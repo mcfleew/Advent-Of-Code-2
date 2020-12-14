@@ -140,6 +140,10 @@ class InputRepository
         ];
     }
 
+    public function getInitializationProgram() {
+        return $this->getInputCollection('day14.txt');
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }
