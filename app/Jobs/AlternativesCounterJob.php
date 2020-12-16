@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
-use Log;
-
 use Illuminate\Support\Str;
+
+use Illuminate\Support\Facades\Log;
 
 class AlternativesCounterJob extends Job
 {

@@ -6,8 +6,6 @@ use App\Http\Repositories\InputRepository;
 
 use App\Jobs\AlternativesCounterJob;
 
-use Log;
-
 class Day10Controller extends Controller
 {
     public function __construct(InputRepository $inputRepository) {

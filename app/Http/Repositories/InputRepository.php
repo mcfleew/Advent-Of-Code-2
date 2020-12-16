@@ -144,6 +144,10 @@ class InputRepository
         return $this->getInputCollection('day14.txt');
     }
 
+    public function getStartingNumbers() {
+        return collect([11, 18, 0, 20, 1, 7, 16]);
+    }
+
     public function getInputCollection($file) {
         return collect(file($this->getInputFile($file), FILE_IGNORE_NEW_LINES));
     }

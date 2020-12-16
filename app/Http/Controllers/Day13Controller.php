@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Log;
-
 use App\Http\Repositories\InputRepository;
 
 class Day13Controller extends Controller
